@@ -1,10 +1,29 @@
 import express from "express";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
+import pizzas from "./routers/pizzas";
 
 // Load environment variables from .env files
 dotenv.config();
 
 const app = express();
+
+// MongoDB
+mongoose.connect(process.env.MONGODB, {
+  // Configuration options to remove deprecation warnings, just include them to remove clutter
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+
+// map the constant db to mongoose.connection
+const db = mongoose.connection;
+
+// tell us that the connection to the database was successful
+db.on("error", console.error.bind(console, "Connection Error:"));
+db.once(
+  "open",
+  console.log.bind(console, "Successfully opened connection to Mongo!")
+);
 
 // get the PORT from the environment variables, OR use 4040 as default
 const PORT = process.env.PORT || 4040;
@@ -33,6 +52,7 @@ const logging = (request, response, next) => {
 };
 
 app.use(cors);
+app.use(express.json());
 app.use(logging);
 
 // NOTE: Middleware goes before the creation of routes :)
@@ -42,6 +62,7 @@ app.get("/status", (request, response) => {
   response.status(200).json({ message: "Service healthy" });
 });
 
+// THIS IS AN EXAMPLE TO SHOWING OFF REQUEST PARAMETERS
 // Handle the request with HTTP GET method with query parameters and a url parameter
 app.get("/weather/:city", (request, response) => {
   // Express adds a "params" Object to requests that has an matches parameter created using the colon syntax
@@ -82,9 +103,11 @@ app.get("/weather/:city", (request, response) => {
   });
 });
 
+app.use("/pizzas", pizzas);
+
 app.listen(PORT, () => console.log("Listening on port 4040"));
 
-//BASIN HTTP SERVER BELOW
+//BASIC HTTP SERVER BELOW
 // // 'Import' the http module
 // import http from 'http';
 // // Initialize the http server
