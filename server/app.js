@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import pizzas from "./routers/pizzas";
+import pizzas from "./routers/pizzas.js";
 
 // Load environment variables from .env files
 dotenv.config();
