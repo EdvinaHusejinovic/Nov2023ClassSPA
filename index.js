@@ -8,10 +8,10 @@ const router = new Navigo("/");
 
 function render(state = store.Home) {
   document.querySelector("#root").innerHTML = `
-  ${Header(state)}
-  ${Nav(store.Links, state)}
-  ${Main(state)}
-  ${Footer()}
+    ${Header(state)}
+    ${Nav(store.Links, state)}
+    ${Main(state)}
+    ${Footer()}
   `;
 
   router.updatePageLinks();
@@ -25,14 +25,13 @@ function afterRender(state) {
   });
 
   if (state.view === "Home") {
-    //Do this stuff
+    // Do this stuff
     document.getElementById("callToAction").addEventListener("click", event => {
       event.preventDefault();
 
       router.navigate("/pizza");
     });
   }
-
   if (state.view === "Order") {
     // Add an event handler for the submit button on the form
     document.querySelector("form").addEventListener("submit", event => {
@@ -48,7 +47,7 @@ function afterRender(state) {
       // Iterate over the toppings array
 
       for (let input of inputList.toppings) {
-        // If the value of the checked attribute is true then add the value to the toppings array
+        // If the value of the checked attribute is true then add the value to the toppings array. pushes into the toppings array above
         if (input.checked) {
           toppings.push(input.value);
         }
@@ -80,9 +79,8 @@ function afterRender(state) {
     });
   }
 }
-
 router.hooks({
-  before: (done, params) => {
+  before: async (done, params) => {
     // We need to know what view we are on to know what data to fetch
     const view =
       params && params.data && params.data.view
@@ -95,7 +93,7 @@ router.hooks({
         axios
           // Get request to retrieve the current weather data using the API key and providing a city name
           .get(
-            `https://api.openweathermap.org/data/2.5/weather?appid=${process.env.OPEN_WEATHER_MAP_API_KEY}&q=st%20louis`
+            `https://api.openweathermap.org/data/2.5/weather?appid=${process.env.OPEN_WEATHER_MAP_API_KEY}&q=chicago`
           )
           .then(response => {
             // Convert Kelvin to Fahrenheit since OpenWeatherMap does provide otherwise
@@ -112,11 +110,11 @@ router.hooks({
 
             // An alternate method would be to store the values independently
             /*
-      store.Home.weather.city = response.data.name;
-      store.Home.weather.temp = kelvinToFahrenheit(response.data.main.temp);
-      store.Home.weather.feelsLike = kelvinToFahrenheit(response.data.main.feels_like);
-      store.Home.weather.description = response.data.weather[0].main;
-      */
+            store.Home.weather.city = response.data.name;
+            store.Home.weather.temp = kelvinToFahrenheit(response.data.main.temp);
+            store.Home.weather.feelsLike = kelvinToFahrenheit(response.data.main.feels_like);
+            store.Home.weather.description = response.data.weather[0].main;
+            */
             done();
           })
           .catch(err => {
@@ -131,9 +129,11 @@ router.hooks({
         axios
           .get(`${process.env.PIZZA_PLACE_API_URL}/pizzas`)
           .then(response => {
-            // We need to store the response to the state, in the next step but in the meantime let's see what it looks like so that we know what to store from the response.
+            // We need to store the response to the state, in the next step but in the meantime
+            //   let's see what it looks like so that we know what to store from the response.
             console.log("response", response.data);
             store.Pizza.pizzas = response.data;
+
             done();
           })
           .catch(error => {
@@ -141,10 +141,30 @@ router.hooks({
             done();
           });
         break;
+
+      case "Products": {
+        // try {
+        //   const response = await axios.get("https://fakestoreapi.com/products");
+
+        //   store.Products.products = response.data;
+
+        //   done();
+        // } catch (error) {
+        //   console.error(error.message);
+        // }
+
+        axios.get("https://fakestoreapi.com/products").then(response => {
+          store.Products.products = response.data;
+
+          done();
+        });
+        break;
+      }
       default:
         done();
     }
   },
+
   already: params => {
     const view =
       params && params.data && params.data.view
